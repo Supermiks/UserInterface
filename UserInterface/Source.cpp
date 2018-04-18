@@ -3,6 +3,7 @@
 using namespace cv;
 using namespace std;
 
+#include <iostream>
 #include <vector>
 
 class Button
@@ -11,13 +12,15 @@ private:
 	int x; int y;
 	string buttonSrc;
 public:
+	void (*buttonFunction)();
+
 	Button()
-		: x(0), y(0), buttonSrc("On_Button.png") { }
+		: x(0), y(0), buttonSrc("On_Button2.png") { }
 
-	Button(const int _x, const int _y, string _buttonSrc)
-		: x(_x), y(_y), buttonSrc(_buttonSrc) { }
+	Button(const int _x, const int _y, string _buttonSrc, void (*_buttonFunction)())
+		: x(_x), y(_y), buttonSrc(_buttonSrc), buttonFunction(_buttonFunction) { }
 
-	Mat imgButton = imread(buttonSrc);
+	Mat imgButton = imread(buttonSrc, IMREAD_UNCHANGED);
 	Rect rectButton = Rect(x, y, imgButton.cols, imgButton.rows);
 };
 
@@ -36,7 +39,7 @@ public:
 
 	bool checkBoxFlag = true;
 
-	Mat imgCheckBox = imread(checkBoxOnSrc);
+	Mat imgCheckBox = imread(checkBoxOnSrc, IMREAD_UNCHANGED);
 	Rect rectCheckBox = Rect(x, y, imgCheckBox.cols, imgCheckBox.rows);
 };
 
@@ -59,9 +62,14 @@ public:
 	vector<CheckBox> checkboxes;
 
 	Mouse mouseCallBack;
-	Mat canvas = Mat(300, 300, CV_8UC3, Scalar(0, 0, 0));
+	Mat canvas;
 
 	Manager() { g_ptr = &mouseCallBack; }
+
+	void AddCanvas(string canvasSrc)
+	{
+		canvas = imread(canvasSrc, IMREAD_UNCHANGED);
+	}
 
 	void AddButton(Button button)
 	{
@@ -73,6 +81,11 @@ public:
 	{
 		checkboxes.push_back(checkbox);
 		checkboxes.back().imgCheckBox.copyTo(canvas(checkboxes.back().rectCheckBox));
+	}
+
+	void Hello()
+	{
+		
 	}
 };
 
@@ -93,6 +106,7 @@ void Mouse::myMouseCallback(int event, int x, int y, int flags, void* param)
 				if ((*manager).buttons[n].rectButton.contains(Point(x, y)))
 				{
 					cout << "Button " << n + 1 << " clicked!" << endl;
+					(*manager).buttons[n].buttonFunction();
 				}
 			}
 
@@ -105,13 +119,13 @@ void Mouse::myMouseCallback(int event, int x, int y, int flags, void* param)
 					if ((*manager).checkboxes[n].checkBoxFlag)
 					{
 						(*manager).checkboxes[n].checkBoxFlag = false;
-						(*manager).checkboxes[n].imgCheckBox = imread((*manager).checkboxes[n].checkBoxOffSrc);
+						(*manager).checkboxes[n].imgCheckBox = imread((*manager).checkboxes[n].checkBoxOffSrc, IMREAD_UNCHANGED);
 						(*manager).checkboxes[n].imgCheckBox.copyTo((*manager).canvas((*manager).checkboxes[n].rectCheckBox));
 					}
 					else
 					{
 						(*manager).checkboxes[n].checkBoxFlag = true;
-						(*manager).checkboxes[n].imgCheckBox = imread((*manager).checkboxes[n].checkBoxOnSrc);
+						(*manager).checkboxes[n].imgCheckBox = imread((*manager).checkboxes[n].checkBoxOnSrc, IMREAD_UNCHANGED);
 						(*manager).checkboxes[n].imgCheckBox.copyTo((*manager).canvas((*manager).checkboxes[n].rectCheckBox));
 					}
 				}
@@ -126,15 +140,23 @@ void Mouse::myMouseCallback(int event, int x, int y, int flags, void* param)
 	}
 }
 
+Manager* p_ManagerFunctions;
+void p_Hello()
+{
+	p_ManagerFunctions->Hello();
+}
+
 int main(int argc, char* argv[])
 {
-	const string buttonSrc = "On_Button.png";
+	const string buttonSrc = "On_Button2.png";
 	const string checkBoxOnSrc = "CheckBoxON.png"; const string checkBoxOffSrc = "CheckBoxOFF.png";
+	const string canvasSrc = "canvas.png";
 
 	Manager manager;
 
-	manager.AddButton(Button(0, 0, buttonSrc));
-	manager.AddButton(Button(100, 0, buttonSrc));
+	manager.AddCanvas(canvasSrc);
+	manager.AddButton(Button(532, 523, buttonSrc, p_Hello));
+	manager.AddButton(Button(649, 646, buttonSrc, p_Hello));
 	manager.AddCheckbox(CheckBox(0, 100, checkBoxOnSrc, checkBoxOffSrc));
 	manager.AddCheckbox(CheckBox(100, 100, checkBoxOnSrc, checkBoxOffSrc));
 
