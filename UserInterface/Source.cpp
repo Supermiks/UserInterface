@@ -43,28 +43,15 @@ public:
 	Rect rectCheckBox = Rect(x, y, imgCheckBox.cols, imgCheckBox.rows);
 };
 
-class Mouse
-{
-public:
-	void myMouseCallback(int event, int x, int y, int flags, void* param);
-};
-
-Mouse* g_ptr;
-void onMouse(int event, int x, int y, int flags, void* param)
-{
-	g_ptr->myMouseCallback(event, x, y, flags, param);
-}
-
 class Manager
 {
 public:
 	vector<Button> buttons;
 	vector<CheckBox> checkboxes;
 
-	Mouse mouseCallBack;
 	Mat canvas;
 
-	Manager() { g_ptr = &mouseCallBack; }
+	Manager() {}
 
 	void AddCanvas(string canvasSrc)
 	{
@@ -90,7 +77,7 @@ public:
 };
 
 // обработчик событий от мышки
-void Mouse::myMouseCallback(int event, int x, int y, int flags, void* param)
+void myMouseCallback(int event, int x, int y, int flags, void* param)
 {
 	Manager *manager = (Manager*)param;
 
@@ -166,7 +153,7 @@ int main(int argc, char* argv[])
 	cvNamedWindow("original", CV_WINDOW_AUTOSIZE);
 
 	// вешаем обработчик мышки
-	cvSetMouseCallback("original", onMouse, interfaceParam);
+	cvSetMouseCallback("original", myMouseCallback, interfaceParam);
 
 	while (1) {
 		// показываем картинку
